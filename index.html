@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HGZY WinGo30s AI Prediction</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c1a25, #142a3d, #1d3b56);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+            font-family: 'Exo 2', sans-serif;
+        }
+        
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 10%, rgba(255, 215, 0, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 80% 90%, rgba(255, 107, 107, 0.1) 0%, transparent 20%);
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+            position: relative;
+            width: 100%;
+        }
+        
+        .logo {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .logo-icon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff8c00, #ffd700);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 30px rgba(255, 140, 0, 0.6);
+            animation: pulse 2s infinite;
+        }
+        
+        .logo-icon i {
+            font-size: 3.5rem;
+            color: #1a2a6c;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 15px rgba(255, 140, 0, 0.4);
+            letter-spacing: 1px;
+            text-align: center;
+            line-height: 1.2;
+            margin: 15px 0;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .subtitle {
+            font-size: 1.3rem;
+            opacity: 0.85;
+            margin-top: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 25px;
+            border-radius: 30px;
+            display: inline-block;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-weight: 500;
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        .btn-container {
+            text-align: center;
+            margin: 40px 0 30px;
+            position: relative;
+            width: 100%;
+        }
+        
+        .predict-btn {
+            background: linear-gradient(to right, #ff8c00, #ffd700);
+            color: #1a2a6c;
+            border: none;
+            padding: 22px 70px;
+            font-size: 2rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 140, 0, 0.6);
+            display: inline-flex;
+            align-items: center;
+            gap: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .predict-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+        
+        .predict-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(255, 140, 0, 0.8);
+        }
+        
+        .predict-btn:hover::before {
+            opacity: 1;
+        }
+        
+        .predict-btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 5px 20px rgba(255, 140, 0, 0.6);
+        }
+        
+        .prediction-container {
+            display: none;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 25px 0;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            position: relative;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .prediction-container::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(to right, #ff8c00, #ffd700);
+        }
+        
+        .info-panel {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .info-panel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(to right, #ff8c00, #ffd700);
+        }
+        
+        .period-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .period-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .period-value {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            padding: 5px 15px;
+            border-radius: 10px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            font-family: 'Courier New', monospace;
+        }
+        
+        .timer-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin: 25px 0;
+        }
+        
+        .timer-label {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .timer {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #ffd700;
+            min-width: 110px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px 30px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            animation: glow 1.5s infinite alternate;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+            font-family: 'Courier New', monospace;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .section-title {
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            color: #ffd700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .prediction-box {
+            background: linear-gradient(135deg, rgba(26, 42, 108, 0.4), rgba(44, 83, 100, 0.4));
+            border-radius: 20px;
+            padding: 30px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid rgba(255, 215, 0, 0.2);
+            transition: all 0.5s ease;
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.7s ease-out;
+        }
+        
+        .prediction-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .prediction-label {
+            font-size: 1.3rem;
+            min-width: 180px;
+            text-align: right;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .prediction-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            min-width: 200px;
+            text-align: left;
+            padding: 12px 25px;
+            border-radius: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .color-prediction {
+            color: #ff6b6b;
+            text-shadow: 0 0 15px rgba(255, 107, 107, 0.6);
+        }
+        
+        .size-prediction {
+            color: #4ecdc4;
+            text-shadow: 0 0 15px rgba(78, 205, 196, 0.6);
+        }
+        
+        .number-prediction {
+            display: flex;
+            gap: 25px;
+        }
+        
+        .number-ball {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            font-weight: 800;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            animation: float 3s infinite ease-in-out;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .number-ball:hover {
+            transform: scale(1.1);
+        }
+        
+        .number-ball:nth-child(2) {
+            animation-delay: 0.5s;
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+        }
+        
+        .number-ball:nth-child(3) {
+            animation-delay: 1s;
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+        }
+        
+        .accuracy {
+            color: #ffd700;
+            font-size: 1.7rem;
+            margin-top: 20px;
+            font-weight: 800;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+            padding: 12px 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        .disclaimer {
+            text-align: center;
+            font-size: 1rem;
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 20px auto;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-top: auto;
+            width: 100%;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes glow {
+            from { 
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.5),
+                            inset 0 0 5px rgba(255, 215, 0, 0.3); 
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+            to { 
+                box-shadow: 0 0 30px rgba(255, 215, 0, 0.9),
+                           inset 0 0 10px rgba(255, 215, 0, 0.5); 
+                text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+            }
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2.2rem; }
+            .logo-icon { width: 80px; height: 80px; }
+            .logo-icon i { font-size: 2.8rem; }
+            .subtitle { font-size: 1.1rem; padding: 8px 15px; }
+            .predict-btn { padding: 18px 40px; font-size: 1.6rem; }
+            .period-info { flex-direction: column; gap: 10px; }
+            .period-label, .period-value { font-size: 1.1rem; }
+            .timer { font-size: 2.2rem; padding: 12px 20px; }
+            .prediction-item { flex-direction: column; gap: 10px; }
+            .prediction-label, .prediction-value { 
+                text-align: center; 
+                min-width: auto; 
+                width: 100%; 
+                font-size: 1.5rem;
+            }
+            .number-ball { width: 55px; height: 55px; font-size: 1.8rem; }
+            .accuracy { font-size: 1.4rem; }
+        }
+        
+        @media (max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            .predict-btn { padding: 15px 30px; font-size: 1.4rem; }
+            .timer { font-size: 1.8rem; }
+            .number-prediction { gap: 15px; }
+            .number-ball { width: 45px; height: 45px; font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h1>HGZY WinGo30s AI Prediction</h1>
+                <p class="subtitle">The most advanced prediction system for WinGo30s</p>
+            </div>
+        </header>
+        
+        <div class="btn-container">
+            <button class="predict-btn" id="predict-btn">
+                <i class="fas fa-bolt"></i>
+                Get Prediction
+            </button>
+        </div>
+        
+        <div class="prediction-container" id="prediction-container">
+            <div class="info-panel">
+                <div class="period-info">
+                    <span class="period-label">Period:</span>
+                    <span class="period-value" id="period">-</span>
+                </div>
+                
+                <div class="timer-container">
+                    <span class="timer-label">Time Remaining:</span>
+                    <span class="timer" id="countdown">-</span>
+                </div>
+            </div>
+            
+            <div class="prediction-section">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Prediction Results
+                </h2>
+                
+                <div class="prediction-box" id="prediction-box">
+                    <div class="prediction-item">
+                        <span class="prediction-label">Predicted Color:</span>
+                        <span class="prediction-value color-prediction" id="color-prediction">-</span>
+                    </div>
+                    
+                    <div class="prediction-item">
+                        <span class="prediction-label">Predicted Size:</span>
+                        <span class="prediction-value size-prediction" id="size-prediction">-</span>
+                    </div>
+                    
+                    <div class="prediction-item">
+                        <span class="prediction-label">Predicted Numbers:</span>
+                        <div class="number-prediction" id="number-prediction">
+                            <div class="number-ball">-</div>
+                            <div class="number-ball">-</div>
+                            <div class="number-ball">-</div>
+                        </div>
+                    </div>
+                    
+                    <div class="accuracy" id="accuracy">Accuracy: -</div>
+                </div>
+            </div>
+        </div>
+        
+        <p class="disclaimer">
+            Disclaimer: This prediction bot generates results for entertainment purposes only. 
+            It does not analyze previous periods or historical data. 
+            Results are not guaranteed and should not be used for actual betting.
+        </p>
+    </div>
+    
+    <footer>
+        <p>© 2025 HGZY WinGo30s AI Prediction | For Entertainment Only</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const predictBtn = document.getElementById('predict-btn');
+            const predictionContainer = document.getElementById('prediction-container');
+            const periodEl = document.getElementById('period');
+            const countdownEl = document.getElementById('countdown');
+            const predictionBox = document.getElementById('prediction-box');
+            const colorPredictionEl = document.getElementById('color-prediction');
+            const sizePredictionEl = document.getElementById('size-prediction');
+            const numberPredictionEl = document.getElementById('number-prediction');
+            const accuracyEl = document.getElementById('accuracy');
+            
+            // Constants for period calculation (UTC+6)
+            // Base period: 20250601100050741 at 2025-06-01 06:10:30 UTC (which is 12:10:30 UTC+6)
+            const BASE_PERIOD = 20250601100050741;
+            const BASE_TIME = new Date('2025-06-01T06:10:30Z').getTime();
+            const PERIOD_DURATION = 30000; // 30 seconds in ms
+            
+            // Game state
+            let currentPrediction = null;
+            let countdownInterval = null;
+            let currentPeriod = null;
+            
+            // Event listener for prediction button
+            predictBtn.addEventListener('click', function() {
+                // Hide previous prediction if any
+                predictionContainer.style.display = 'none';
+                
+                // Calculate current time in UTC
+                const nowUTC = Date.now();
+                
+                // Calculate current period
+                const periodsPassed = Math.floor((nowUTC - BASE_TIME) / PERIOD_DURATION);
+                currentPeriod = BASE_PERIOD + periodsPassed;
+                
+                // Calculate next period time
+                const nextPeriodTime = BASE_TIME + (periodsPassed + 1) * PERIOD_DURATION;
+                
+                // Calculate time remaining in seconds (rounded down)
+                let secondsRemaining = Math.floor((nextPeriodTime - nowUTC) / 1000);
+                
+                // Ensure secondsRemaining is between 0 and 30
+                secondsRemaining = Math.max(0, Math.min(30, secondsRemaining));
+                
+                // Update period display
+                periodEl.textContent = currentPeriod;
+                
+                // Update countdown display
+                countdownEl.textContent = `${secondsRemaining}s`;
+                
+                // Clear existing interval if any
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                }
+                
+                // Start countdown timer
+                countdownInterval = setInterval(function() {
+                    const now = Date.now();
+                    let seconds = Math.floor((nextPeriodTime - now) / 1000);
+                    seconds = Math.max(0, Math.min(30, seconds));
+                    
+                    countdownEl.textContent = `${seconds}s`;
+                    
+                    // When period ends, reset the display
+                    if (seconds === 0) {
+                        clearInterval(countdownInterval);
+                        setTimeout(() => {
+                            predictionContainer.style.display = 'none';
+                        }, 1000);
+                    }
+                }, 100);
+                
+                // Generate new prediction
+                generatePrediction();
+                
+                // Show prediction container with animation
+                setTimeout(() => {
+                    predictionContainer.style.display = 'block';
+                }, 10);
+            });
+            
+            function generatePrediction() {
+                // Generate random prediction
+                const colors = ['Red', 'Green', 'Violet'];
+                const sizes = ['Big', 'Small'];
+                
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const size = sizes[Math.floor(Math.random() * sizes.length)];
+                const numbers = [
+                    Math.floor(Math.random() * 10),
+                    Math.floor(Math.random() * 10),
+                    Math.floor(Math.random() * 10)
+                ];
+                const accuracy = (90 + Math.random() * 9).toFixed(2); // 90-99%
+                
+                // Store prediction
+                currentPrediction = { color, size, numbers, accuracy };
+                
+                // Display prediction with animation
+                displayPrediction();
+            }
+            
+            function displayPrediction() {
+                // Reset display
+                colorPredictionEl.textContent = '-';
+                sizePredictionEl.textContent = '-';
+                const balls = numberPredictionEl.querySelectorAll('.number-ball');
+                balls.forEach(ball => {
+                    ball.textContent = '-';
+                });
+                accuracyEl.textContent = 'Accuracy: -';
+                
+                // Animate in prediction
+                setTimeout(() => {
+                    // Set color prediction with color coding
+                    colorPredictionEl.textContent = currentPrediction.color;
+                    colorPredictionEl.style.color = 
+                        currentPrediction.color === 'Red' ? '#ff6b6b' :
+                        currentPrediction.color === 'Green' ? '#38ef7d' : 
+                        '#a55eea';
+                    
+                    // Set size prediction
+                    sizePredictionEl.textContent = currentPrediction.size;
+                    
+                    // Set number prediction
+                    balls.forEach((ball, index) => {
+                        setTimeout(() => {
+                            ball.textContent = currentPrediction.numbers[index];
+                        }, 300 * (index + 1));
+                    });
+                    
+                    // Set accuracy
+                    setTimeout(() => {
+                        accuracyEl.textContent = `Accuracy: ${currentPrediction.accuracy}%`;
+                    }, 1200);
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>
